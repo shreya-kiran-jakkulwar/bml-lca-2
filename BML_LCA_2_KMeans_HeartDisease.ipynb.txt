@@ -1,0 +1,105 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "\n",
+        "# Experiment: Train the system using Heart Disease dataset (UCI ML Repository)\n",
+        "# Determine accuracy using K-Means Clustering\n",
+        "\n",
+        "# Step 1: Install and import required libraries\n",
+        "!pip install ucimlrepo\n",
+        "\n",
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "from ucimlrepo import fetch_ucirepo\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.cluster import KMeans\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "# Step 2: Load the dataset\n",
+        "heart_disease = fetch_ucirepo(id=45)\n",
+        "\n",
+        "x = heart_disease.data.features\n",
+        "y = heart_disease.data.targets\n",
+        "\n",
+        "print(\"Shape of dataset:\", x.shape)\n",
+        "x.head()\n",
+        "\n",
+        "# Step 3: Data Preprocessing\n",
+        "# target column has values 0-4, converting to binary: 0 = no disease, 1 = disease\n",
+        "y = y.iloc[:, 0]\n",
+        "y = np.where(y > 0, 1, 0)\n",
+        "\n",
+        "# filling missing values with median of each column\n",
+        "x = x.fillna(x.median())\n",
+        "\n",
+        "# Step 4: Feature Scaling\n",
+        "# K-Means works on distance, so all features need to be on the same scale\n",
+        "sc = StandardScaler()\n",
+        "x_scaled = sc.fit_transform(x)\n",
+        "\n",
+        "# Step 5: Applying K-Means Clustering\n",
+        "km = KMeans(n_clusters=2, random_state=42, n_init=10)\n",
+        "y_pred = km.fit_predict(x_scaled)\n",
+        "\n",
+        "# Step 6: Matching cluster numbers to actual labels\n",
+        "# KMeans assigns cluster 0/1 randomly, so we map each cluster to its majority actual label\n",
+        "labels = np.zeros(len(y_pred))\n",
+        "for i in range(2):\n",
+        "    mask = (y_pred == i)\n",
+        "    labels[mask] = np.bincount(y[mask]).argmax()\n",
+        "\n",
+        "# Step 7: Accuracy of the model\n",
+        "accuracy = accuracy_score(y, labels)\n",
+        "print(\"Accuracy of K-Means Clustering Model =\", accuracy)\n",
+        "print(\"Accuracy in percentage =\", round(accuracy * 100, 2), \"%\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "49-rSRD5e9V6",
+        "outputId": "283cd0d0-cff9-4a6c-efe5-e4aa8745e423"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting ucimlrepo\n",
+            "  Downloading ucimlrepo-0.0.7-py3-none-any.whl.metadata (5.5 kB)\n",
+            "Requirement already satisfied: pandas>=1.0.0 in /usr/local/lib/python3.13/dist-packages (from ucimlrepo) (2.2.3)\n",
+            "Requirement already satisfied: certifi>=2020.12.5 in /usr/local/lib/python3.13/dist-packages (from ucimlrepo) (2026.7.22)\n",
+            "Requirement already satisfied: numpy>=1.26.0 in /usr/local/lib/python3.13/dist-packages (from pandas>=1.0.0->ucimlrepo) (2.1.3)\n",
+            "Requirement already satisfied: python-dateutil>=2.8.2 in /usr/local/lib/python3.13/dist-packages (from pandas>=1.0.0->ucimlrepo) (2.9.0.post0)\n",
+            "Requirement already satisfied: pytz>=2020.1 in /usr/local/lib/python3.13/dist-packages (from pandas>=1.0.0->ucimlrepo) (2025.2)\n",
+            "Requirement already satisfied: tzdata>=2022.7 in /usr/local/lib/python3.13/dist-packages (from pandas>=1.0.0->ucimlrepo) (2026.3)\n",
+            "Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.13/dist-packages (from python-dateutil>=2.8.2->pandas>=1.0.0->ucimlrepo) (1.17.0)\n",
+            "Downloading ucimlrepo-0.0.7-py3-none-any.whl (8.0 kB)\n",
+            "Installing collected packages: ucimlrepo\n",
+            "Successfully installed ucimlrepo-0.0.7\n",
+            "Shape of dataset: (303, 13)\n",
+            "Accuracy of K-Means Clustering Model = 0.8316831683168316\n",
+            "Accuracy in percentage = 83.17 %\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
